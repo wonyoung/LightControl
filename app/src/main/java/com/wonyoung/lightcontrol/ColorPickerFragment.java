@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.larswerkman.holocolorpicker.ColorPicker;
+import com.larswerkman.holocolorpicker.SVBar;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -33,14 +34,12 @@ public class ColorPickerFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_colorpicker, container, false);
-        rootView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mController.color(100);
-            }
-        });
-
+        
         ColorPicker picker = (ColorPicker) rootView.findViewById(R.id.picker);
+        SVBar svbar = (SVBar) rootView.findViewById(R.id.svbar);
+
+        picker.addSVBar(svbar);
+
         picker.setShowOldCenterColor(false);
         picker.setOnColorChangedListener(new ColorPicker.OnColorChangedListener() {
             @Override
@@ -54,6 +53,8 @@ public class ColorPickerFragment extends Fragment {
                 });
             }
         });
+
+        mController.color(picker.getColor());
 
         return rootView;
     }
@@ -70,7 +71,7 @@ public class ColorPickerFragment extends Fragment {
 
         public void run(Runnable runnable) {
             handler.removeCallbacksAndMessages(null);
-            handler.postDelayed(runnable, 1000);
+            handler.postDelayed(runnable, 400);
         }
     }
 }

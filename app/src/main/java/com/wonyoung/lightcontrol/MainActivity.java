@@ -2,6 +2,9 @@ package com.wonyoung.lightcontrol;
 
 import java.util.Locale;
 
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -13,10 +16,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 
 public class MainActivity extends FragmentActivity {
 
+    private static final int REQUEST_ENABLE_BT = 3;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -25,8 +30,12 @@ public class MainActivity extends FragmentActivity {
      * may be best to switch to a
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
-    SectionsPagerAdapter mSectionsPagerAdapter;
-    LightController mLightController;
+    private SectionsPagerAdapter mSectionsPagerAdapter;
+
+    private LightController mLightController;
+    private LightService mLightService = null;
+
+    private BluetoothAdapter mBluetoothAdapter;
 
     /**
      * The {@link ViewPager} that will host the section contents.
@@ -38,15 +47,71 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mLightController = new LightController(this);
+        mLightController = new LightController(this, mLightController);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), mLightController);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if (mBluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+            // Otherwise, setup the chat session
+        } else if (mLightService == null) {
+            setupLight();
+        }
+
+    }
+
+    private void setupLight() {
+        mLightService = new LightService(this);
+        mLightController.setService(mLightService);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mLightService != null) {
+            if (mLightService.getState() == LightService.STATE_NONE) {
+                mLightService.start();
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mLightService != null) {
+            mLightService.stop();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch(requestCode) {
+            case REQUEST_ENABLE_BT:
+                if (resultCode == Activity.RESULT_OK) {
+                    setupLight();
+                } else {
+                    Toast.makeText(this, "Bluetooth is not enabled.",
+                            Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                break;
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -69,7 +134,6 @@ public class MainActivity extends FragmentActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
