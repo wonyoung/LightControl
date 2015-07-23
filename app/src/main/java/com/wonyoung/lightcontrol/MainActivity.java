@@ -1,16 +1,14 @@
 package com.wonyoung.lightcontrol;
 
-import java.util.Locale;
-
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.support.v4.app.FragmentActivity;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.os.Bundle;
-import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,41 +17,39 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends AppCompatActivity
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
+    public static final int ACTION_CONNECT = 99;
+    private NavigationDrawerFragment mNavigationDrawerFragment;
+
+    private CharSequence mTitle;
+
+    private static final int REQUEST_DEVICE_LIST = 2;
     private static final int REQUEST_ENABLE_BT = 3;
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
 
     private LightController mLightController;
     private LightService mLightService = null;
 
     private BluetoothAdapter mBluetoothAdapter;
 
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    ViewPager mViewPager;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mLightController = new LightController(this, mLightController);
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), mLightController);
+        mNavigationDrawerFragment = (NavigationDrawerFragment)
+                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
+        mTitle = getTitle();
 
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
+        mLightService = new LightService(this);
 
+        // Set up the drawer.
+        mNavigationDrawerFragment.setUp(
+                R.id.navigation_drawer,
+                (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        mLightController = new LightController(this, mLightService);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (mBluetoothAdapter == null) {
@@ -72,11 +68,10 @@ public class MainActivity extends FragmentActivity {
         } else if (mLightService == null) {
             setupLight();
         }
-
     }
 
     private void setupLight() {
-        mLightService = new LightService(this);
+//        mLightService = new LightService(this);
         mLightController.setService(mLightService);
     }
 
@@ -110,7 +105,21 @@ public class MainActivity extends FragmentActivity {
                     finish();
                 }
                 break;
+            case REQUEST_DEVICE_LIST:
+                if (resultCode == Activity.RESULT_OK) {
+                    connectDevice(data);
+                }
+                break;
         }
+    }
+    private void connectDevice(Intent data) {
+        // Get the device MAC address
+        String address = data.getExtras()
+                .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+        // Get the BluetoothDevice object
+        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        // Attempt to connect to the device
+        mLightService.connect(device);
     }
 
     @Override
@@ -135,51 +144,19 @@ public class MainActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    @Override
+    public void onNavigationDrawerItemSelected(int position) {
+        if (position == ACTION_CONNECT) {
+            Intent intent = new Intent(this, DeviceListActivity.class);
 
-        private LightController mController;
-
-        public SectionsPagerAdapter(FragmentManager fm, LightController controller) {
-            super(fm);
-            this.mController = controller;
+            startActivityForResult(intent, REQUEST_DEVICE_LIST);
+            return;
         }
-
-        @Override
-        public Fragment getItem(int position) {
-            switch(position) {
-                case 0:
-                    return SettingsFragment.newInstance(mLightService);
-                case 1:
-                    return ColorPickerFragment.newInstance(mController);
-            }
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
-        }
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            Locale l = Locale.getDefault();
-            switch (position) {
-                case 0:
-                    return getString(R.string.title_section1).toUpperCase(l);
-                case 1:
-                    return getString(R.string.title_section2).toUpperCase(l);
-                case 2:
-                    return getString(R.string.title_section3).toUpperCase(l);
-            }
-            return null;
-        }
+        // update the main content by replacing fragments
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1, mLightService, mLightController))
+                .commit();
     }
 
     /**
@@ -196,7 +173,14 @@ public class MainActivity extends FragmentActivity {
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
+        public static Fragment newInstance(int sectionNumber, LightService service, LightController controller) {
+            switch(sectionNumber) {
+                case 1:
+                    return ColorPickerFragment.newInstance(controller);
+                case 2:
+                    return SettingsFragment.newInstance(service);
+            }
+
             PlaceholderFragment fragment = new PlaceholderFragment();
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
@@ -212,6 +196,27 @@ public class MainActivity extends FragmentActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             return rootView;
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            ((MainActivity) activity).onSectionAttached(
+                    getArguments().getInt(ARG_SECTION_NUMBER));
+        }
+    }
+
+    private void onSectionAttached(int number) {
+        switch (number) {
+            case 1:
+                mTitle = getString(R.string.title_simple_color);
+                break;
+            case 2:
+                mTitle = getString(R.string.title_preset);
+                break;
+            case 3:
+                mTitle = getString(R.string.title_settings);
+                break;
         }
     }
 

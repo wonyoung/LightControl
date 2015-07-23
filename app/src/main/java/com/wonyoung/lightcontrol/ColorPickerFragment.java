@@ -1,5 +1,6 @@
 package com.wonyoung.lightcontrol;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -47,13 +48,16 @@ public class ColorPickerFragment extends Fragment {
                 delayer.run(new Runnable() {
                     @Override
                     public void run() {
-                        mController.color(i);
+                        if (mController != null) {
+                            mController.color(i);
+                        }
                     }
                 });
             }
         });
 
-        mController.color(picker.getColor());
+        picker.setColor(Color.WHITE);
+//        mController.color(picker.getColor());
 
         return rootView;
     }

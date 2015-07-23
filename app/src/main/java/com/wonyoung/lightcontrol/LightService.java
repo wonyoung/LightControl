@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -124,6 +123,7 @@ public class LightService {
     }
 
 
+
     /**
      * This thread runs while attempting to make an outgoing connection
      * with a device. It runs straight through; the connection either
@@ -228,7 +228,7 @@ public class LightService {
         /**
          * Write to the connected OutStream.
          *
-         * @param buffer The bytes to write
+         * @param buffer The bytes to send
          */
         public void write(byte[] buffer) {
             try {
@@ -250,7 +250,7 @@ public class LightService {
     }
 
 
-    public void write(byte[] out) {
+    public void send(byte[] out) {
         // Create temporary object
         ConnectedThread r;
         // Synchronize a copy of the ConnectedThread
@@ -258,7 +258,11 @@ public class LightService {
             if (mState != STATE_CONNECTED) return;
             r = mConnectedThread;
         }
-        // Perform the write unsynchronized
+        // Perform the send unsynchronized
         r.write(out);
     }
+    public void send(String s) {
+        send((s + "\n").getBytes());
+    }
+
 }
