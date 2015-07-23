@@ -1,12 +1,12 @@
 package com.wonyoung.lightcontrol;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+import android.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -20,15 +20,12 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
-    public static final int ACTION_CONNECT = 99;
     private NavigationDrawerFragment mNavigationDrawerFragment;
-
-    private CharSequence mTitle;
 
     private static final int REQUEST_DEVICE_LIST = 2;
     private static final int REQUEST_ENABLE_BT = 3;
 
-    private LightController mLightController;
+    private LightController mLightController = new LightController(this);
     private LightService mLightService = null;
 
     private BluetoothAdapter mBluetoothAdapter;
@@ -38,24 +35,26 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
+        mNavigationDrawerFragment = setUpDrawerFragment();
 
-        mLightService = new LightService(this);
+//        mLightController = new LightController(this);
 
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
-
-        mLightController = new LightController(this, mLightService);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (mBluetoothAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             finish();
         }
+    }
+
+    private NavigationDrawerFragment setUpDrawerFragment() {
+        NavigationDrawerFragment fragment = (NavigationDrawerFragment)
+                getFragmentManager().findFragmentById(R.id.navigation_drawer);
+
+        fragment.setUp(
+                R.id.navigation_drawer,
+                (DrawerLayout) findViewById(R.id.drawer_layout));
+        return fragment;
     }
 
     @Override
@@ -71,7 +70,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setupLight() {
-//        mLightService = new LightService(this);
+        mLightService = new LightService(this);
         mLightController.setService(mLightService);
     }
 
@@ -100,7 +99,7 @@ public class MainActivity extends AppCompatActivity
                 if (resultCode == Activity.RESULT_OK) {
                     setupLight();
                 } else {
-                    Toast.makeText(this, "Bluetooth is not enabled.",
+                    Toast.makeText(this, "To start, Bluetooth should be enabled.",
                             Toast.LENGTH_SHORT).show();
                     finish();
                 }
@@ -146,17 +145,19 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        if (position == ACTION_CONNECT) {
-            Intent intent = new Intent(this, DeviceListActivity.class);
-
-            startActivityForResult(intent, REQUEST_DEVICE_LIST);
-            return;
-        }
         // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1, mLightService, mLightController))
+                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1, mLightController))
                 .commit();
+    }
+
+    @Override
+    public void onOptionItemSelected() {
+        Intent intent = new Intent(this, DeviceListActivity.class);
+
+        startActivityForResult(intent, REQUEST_DEVICE_LIST);
+        return;
     }
 
     /**
@@ -173,12 +174,12 @@ public class MainActivity extends AppCompatActivity
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static Fragment newInstance(int sectionNumber, LightService service, LightController controller) {
+        public static Fragment newInstance(int sectionNumber, LightController controller) {
             switch(sectionNumber) {
                 case 1:
                     return ColorPickerFragment.newInstance(controller);
                 case 2:
-                    return SettingsFragment.newInstance(service);
+                    return SettingsFragment.newInstance();
             }
 
             PlaceholderFragment fragment = new PlaceholderFragment();
@@ -207,17 +208,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_simple_color);
-                break;
-            case 2:
-                mTitle = getString(R.string.title_preset);
-                break;
-            case 3:
-                mTitle = getString(R.string.title_settings);
-                break;
-        }
+
     }
 
 }
