@@ -26,7 +26,7 @@ public class LightService {
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
 
-    String btAddrTmp = "98:D3:31:80:54:5F";
+//    String btAddrTmp = "98:D3:31:80:54:5F";
 
     public static final int STATE_NONE = 0;
     public static final int STATE_LISTEN = 1;
@@ -47,10 +47,10 @@ public class LightService {
     public void start() {
         setState(STATE_LISTEN);
         Toast.makeText(mContext, "Connecting...", Toast.LENGTH_SHORT).show();
-        mAdapter.getBondedDevices();
-        BluetoothDevice remoteDevice = mAdapter.getRemoteDevice(btAddrTmp);
-        Log.e("abc", remoteDevice.getName() + " " + remoteDevice.getAddress());
-        connect(remoteDevice);
+
+//        BluetoothDevice remoteDevice = mAdapter.getRemoteDevice(btAddrTmp);
+//        Log.e("abc", remoteDevice.getName() + " " + remoteDevice.getAddress());
+//        connect(remoteDevice);
     }
 
     public void setState(int state) {

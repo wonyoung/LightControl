@@ -151,6 +151,8 @@ public class MainActivity extends FragmentActivity {
         @Override
         public Fragment getItem(int position) {
             switch(position) {
+                case 0:
+                    return SettingsFragment.newInstance(mLightService);
                 case 1:
                     return ColorPickerFragment.newInstance(mController);
             }
