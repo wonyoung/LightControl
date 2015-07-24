@@ -39,8 +39,6 @@ public class MainActivity extends AppCompatActivity
 
         mNavigationDrawerFragment = setUpDrawerFragment();
 
-//        mLightController = new LightController(this);
-
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (mBluetoothAdapter == null) {
@@ -147,11 +145,21 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1, mLightController))
+                .replace(R.id.container, getPlaceholderFragment(position + 1))
                 .commit();
+    }
+
+    private Fragment getPlaceholderFragment(int sectionNumber) {
+        switch(sectionNumber) {
+            case 1:
+                return PresetColorFragment.newInstance(mLightController, sectionNumber);
+            case 2:
+                return ColorPickerFragment.newInstance(mLightController);
+        }
+
+        return SettingsFragment.newInstance();
     }
 
     @Override
@@ -160,54 +168,6 @@ public class MainActivity extends AppCompatActivity
 
         startActivityForResult(intent, REQUEST_DEVICE_LIST);
         return;
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static Fragment newInstance(int sectionNumber, LightController controller) {
-            switch(sectionNumber) {
-                case 1:
-                    return ColorPickerFragment.newInstance(controller);
-                case 2:
-                    return PresetColorFragment.newInstance(controller, sectionNumber);
-                case 3:
-                    return SettingsFragment.newInstance();
-            }
-
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((MainActivity) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }
     }
 
     public void onSectionAttached(int number) {

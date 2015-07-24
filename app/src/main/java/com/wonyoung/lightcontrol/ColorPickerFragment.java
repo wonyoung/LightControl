@@ -15,6 +15,7 @@ import com.larswerkman.holocolorpicker.SVBar;
  * Created by wonyoung.jang on 15. 7. 22.
  */
 public class ColorPickerFragment extends Fragment {
+    public static final int COLOR_INIT = Color.rgb(160, 160, 255);
     private LightController mController;
     private Delayer delayer = new Delayer();
 
@@ -37,6 +38,9 @@ public class ColorPickerFragment extends Fragment {
 
         picker.addSVBar(svbar);
 
+        picker.setColor(COLOR_INIT);
+        rootView.setBackgroundColor(COLOR_INIT);
+
         picker.setShowOldCenterColor(false);
         picker.setOnColorChangedListener(new ColorPicker.OnColorChangedListener() {
             @Override
@@ -52,9 +56,6 @@ public class ColorPickerFragment extends Fragment {
                 });
             }
         });
-
-        picker.setColor(Color.rgb(160, 160, 255));
-//        mController.color(picker.getColor());
 
         return rootView;
     }

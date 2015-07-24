@@ -2,7 +2,6 @@ package com.wonyoung.lightcontrol;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 
 /**
  * Created by wonyoung.jang on 15. 7. 22.
@@ -12,7 +11,11 @@ public class LightController {
     private static final byte CHANGE_COLOR = 11;
     private static final byte CHANGE_BRIGHTNESS = 12;
     private static final byte PRESET_RAINBOW = 21;
-    private static final byte PRESET_RAINBOW_SLOW = 22;
+    private static final byte PRESET_GRADIENT = 22;
+    private static final byte PRESET_BLACK = 23;
+    private static final byte PRESET_WHITE = 24;
+    private static final byte PRESET_STOP = 25;
+    private static final byte PRESET_BLINK = 26;
 
     private Context mContext;
     private LightService mService = null;
@@ -26,14 +29,41 @@ public class LightController {
     }
 
     public void color(int i) {
-        byte[] msg = withChecksum(colorCommand(Color.red(i), Color.green(i), Color.blue(i)));
-        if (mService != null) {
-            mService.send(msg);
-        }
+        send(new byte[] {CHANGE_COLOR, (byte) Color.red(i), (byte) Color.green(i), (byte) Color.blue(i)});
     }
 
-    private byte[] colorCommand(int red, int green, int blue) {
-        return new byte[]{CHANGE_COLOR, (byte) red, (byte) green, (byte) blue};
+    public void brightness(int b) {
+        send(new byte[] {CHANGE_BRIGHTNESS, (byte) b, 0, 0 });
+    }
+
+    public void rainbow() {
+        send(new byte[] {PRESET_RAINBOW, 0, 0, 0 });
+    }
+
+    public void gradient() {
+        send(new byte[] {PRESET_GRADIENT, 0, 0, 0 });
+    }
+
+    public void black() {
+        send(new byte[] {PRESET_BLACK, 0, 0, 0 });
+    }
+
+    public void white() {
+        send(new byte[] {PRESET_WHITE, 0, 0, 0 });
+    }
+
+    public void stop() {
+        send(new byte[] {PRESET_STOP, 0, 0, 0 });
+    }
+
+    public void blink() {
+        send(new byte[] {PRESET_BLINK, 0, 0, 0 });
+    }
+
+    private void send(byte[] msg) {
+        if (mService != null) {
+            mService.send(withChecksum(msg));
+        }
     }
 
     private byte[] withChecksum(byte[] cmd) {

@@ -1,6 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:columnCount="2">
 
-</LinearLayout>
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_rainbow"
+        android:src="@drawable/rainbow_icon"
+        android:scaleType="fitXY"
+        android:maxHeight="140dp"
+        android:maxWidth="140dp"
+        android:adjustViewBounds="true"
+        android:layout_gravity="fill"
+        android:layout_margin="10dp" />
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_gradient"
+        android:src="@drawable/gradient_icon"
+        android:scaleType="fitXY"
+        android:maxHeight="140dp"
+        android:maxWidth="140dp"
+        android:adjustViewBounds="true"
+        android:layout_gravity="fill"
+        android:layout_margin="10dp" />
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_black"
+        android:src="@android:color/black"
+        android:scaleType="fitXY"
+        android:maxHeight="140dp"
+        android:maxWidth="140dp"
+        android:adjustViewBounds="true"
+        android:layout_gravity="fill"
+        android:layout_margin="10dp" />
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_white"
+        android:src="@android:color/white"
+        android:scaleType="fitXY"
+        android:maxHeight="140dp"
+        android:maxWidth="140dp"
+        android:adjustViewBounds="true"
+        android:layout_gravity="fill"
+        android:layout_margin="10dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_stop"
+        android:src="@android:color/black"
+        android:scaleType="fitXY"
+        android:maxHeight="140dp"
+        android:maxWidth="140dp"
+        android:adjustViewBounds="true"
+        android:layout_gravity="fill"
+        android:layout_margin="10dp"
+        android:text="STOP"
+        android:textSize="32dp"
+        android:height="140dp" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_blink"
+        android:src="@android:color/white"
+        android:scaleType="fitXY"
+        android:maxHeight="140dp"
+        android:maxWidth="140dp"
+        android:adjustViewBounds="true"
+        android:layout_gravity="fill"
+        android:layout_margin="10dp"
+        android:height="140dp"
+        android:text="BLINK"
+        android:textSize="32dp" />
+
+
+</GridLayout>
