@@ -11,9 +11,6 @@ import android.view.ViewGroup;
 import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.SVBar;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 /**
  * Created by wonyoung.jang on 15. 7. 22.
  */
@@ -21,13 +18,13 @@ public class ColorPickerFragment extends Fragment {
     private LightController mController;
     private Delayer delayer = new Delayer();
 
-    private void init(LightController controller) {
+    private void setController(LightController controller) {
         mController = controller;
     }
 
     public static Fragment newInstance(LightController controller) {
         ColorPickerFragment fragment = new ColorPickerFragment();
-        fragment.init(controller);
+        fragment.setController(controller);
         return fragment;
     }
 
@@ -56,17 +53,10 @@ public class ColorPickerFragment extends Fragment {
             }
         });
 
-        picker.setColor(Color.rgb(160,160,255));
+        picker.setColor(Color.rgb(160, 160, 255));
 //        mController.color(picker.getColor());
 
         return rootView;
-    }
-
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
     }
 
     private class Delayer {

@@ -20,6 +20,8 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
+    public static final String ARG_SECTION_NUMBER = "section_number";
+
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
     private static final int REQUEST_DEVICE_LIST = 2;
@@ -168,7 +170,6 @@ public class MainActivity extends AppCompatActivity
          * The fragment argument representing the section number for this
          * fragment.
          */
-        private static final String ARG_SECTION_NUMBER = "section_number";
 
         /**
          * Returns a new instance of this fragment for the given section
@@ -179,6 +180,8 @@ public class MainActivity extends AppCompatActivity
                 case 1:
                     return ColorPickerFragment.newInstance(controller);
                 case 2:
+                    return PresetColorFragment.newInstance(controller, sectionNumber);
+                case 3:
                     return SettingsFragment.newInstance();
             }
 
@@ -207,7 +210,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void onSectionAttached(int number) {
+    public void onSectionAttached(int number) {
 
     }
 

@@ -25,14 +25,13 @@ public class LightService {
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
 
-//    String btAddrTmp = "98:D3:31:80:54:5F";
-
     public static final int STATE_NONE = 0;
     public static final int STATE_LISTEN = 1;
     private static final int STATE_CONNECTING = 2;
     private static final int STATE_CONNECTED = 3;
 
     private int mState;
+    private byte[] lastOut;
 
     public LightService(Context context) {
         this.mContext = context;
@@ -45,11 +44,6 @@ public class LightService {
 
     public void start() {
         setState(STATE_LISTEN);
-        Toast.makeText(mContext, "Connecting...", Toast.LENGTH_SHORT).show();
-
-//        BluetoothDevice remoteDevice = mAdapter.getRemoteDevice(btAddrTmp);
-//        Log.e("abc", remoteDevice.getName() + " " + remoteDevice.getAddress());
-//        connect(remoteDevice);
     }
 
     public void setState(int state) {
@@ -210,12 +204,9 @@ public class LightService {
             // Keep listening to the InputStream while connected
             while (true) {
                 try {
-                    // Read from the InputStream
                     bytes = mmInStream.read(buffer);
-//
-//                    // Send the obtained bytes to the UI Activity
-//                    mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer)
-//                            .sendToTarget();
+
+                    received(bytes, buffer);
                 } catch (IOException e) {
 //                    connectionLost();
                     // Start the service over to restart listening mode
@@ -225,18 +216,10 @@ public class LightService {
             }
         }
 
-        /**
-         * Write to the connected OutStream.
-         *
-         * @param buffer The bytes to send
-         */
         public void write(byte[] buffer) {
             try {
                 mmOutStream.write(buffer);
 
-//                // Share the sent message back to the UI Activity
-//                mHandler.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, buffer)
-//                        .sendToTarget();
             } catch (IOException e) {
             }
         }
@@ -249,8 +232,19 @@ public class LightService {
         }
     }
 
+    private void received(int bytes, byte[] buffer) {
+        for(int i = 0; i < bytes - 1; i++) {
+            if (buffer[i] == 'N' && buffer[i+1] == 'G') {
+                Log.d("AA", "resend");
+                send(lastOut);
+                return;
+            }
+        }
+    }
+
 
     public void send(byte[] out) {
+        Toast.makeText(mContext, toastText(out), Toast.LENGTH_SHORT).show();
         // Create temporary object
         ConnectedThread r;
         // Synchronize a copy of the ConnectedThread
@@ -260,9 +254,16 @@ public class LightService {
         }
         // Perform the send unsynchronized
         r.write(out);
-    }
-    public void send(String s) {
-        send((s + "\n").getBytes());
+        lastOut = out;
     }
 
+    private String toastText(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(b & 0xFF);
+            sb.append(" ");
+        }
+
+        return sb.toString();
+    }
 }
