@@ -65,7 +65,7 @@ public class ColorPickerFragment extends Fragment {
 
         public void run(Runnable runnable) {
             handler.removeCallbacksAndMessages(null);
-            handler.postDelayed(runnable, 400);
+            handler.postDelayed(runnable, 200);
         }
     }
 }
