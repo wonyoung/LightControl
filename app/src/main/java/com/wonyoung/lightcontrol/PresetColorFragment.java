@@ -8,11 +8,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
 
 /**
  * Created by wonyoung.jang on 15. 7. 24.
  */
 public class PresetColorFragment extends Fragment {
+    private static final int MAX_PERIOD = 9;
+    private static final int MAX_BRIGHTNESS = 255;
+
     private LightController mController;
 
     public static PresetColorFragment newInstance(LightController controller, int sectionNumber) {
@@ -69,6 +73,45 @@ public class PresetColorFragment extends Fragment {
                 mController.blink();
             }
         });
+
+        SeekBar periodSeekBar = (SeekBar) rootView.findViewById(R.id.seekbar_period);
+        periodSeekBar.setMax(MAX_PERIOD - 1);
+        periodSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                mController.period(progress + 1);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        SeekBar brightnessSeekBar = (SeekBar) rootView.findViewById(R.id.seekbar_brightness);
+        brightnessSeekBar.setMax(MAX_BRIGHTNESS);
+        brightnessSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                mController.brightness(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
         return rootView;
     }
 

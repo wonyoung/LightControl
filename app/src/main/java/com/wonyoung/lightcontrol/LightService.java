@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -25,6 +26,8 @@ public class LightService {
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
 
+    private Delayer delayer = new Delayer();
+
     public static final int STATE_NONE = 0;
     public static final int STATE_LISTEN = 1;
     private static final int STATE_CONNECTING = 2;
@@ -39,7 +42,28 @@ public class LightService {
         mState = STATE_NONE;
     }
 
-    public void stop() {
+    public synchronized void stop() {
+
+        if (mConnectThread != null) {
+            mConnectThread.cancel();
+            mConnectThread = null;
+        }
+
+        if (mConnectedThread != null) {
+            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
+//
+//        if (mSecureAcceptThread != null) {
+//            mSecureAcceptThread.cancel();
+//            mSecureAcceptThread = null;
+//        }
+//
+//        if (mInsecureAcceptThread != null) {
+//            mInsecureAcceptThread.cancel();
+//            mInsecureAcceptThread = null;
+//        }
+        setState(STATE_NONE);
     }
 
     public void start() {
@@ -219,7 +243,6 @@ public class LightService {
         public void write(byte[] buffer) {
             try {
                 mmOutStream.write(buffer);
-
             } catch (IOException e) {
             }
         }
@@ -232,29 +255,51 @@ public class LightService {
         }
     }
 
-    private void received(int bytes, byte[] buffer) {
-        for(int i = 0; i < bytes - 1; i++) {
-            if (buffer[i] == 'N' && buffer[i+1] == 'G') {
-                Log.d("AA", "resend");
-                send(lastOut);
-                return;
-            }
+    private class Delayer {
+        private Handler handler = new Handler();
+
+        public void run(Runnable runnable) {
+            handler.removeCallbacksAndMessages(null);
+            handler.postDelayed(runnable, 100);
         }
     }
 
+    private void received(int bytes, byte[] buffer) {
+//        for (byte b : buffer) {
+//            if (b == 0) continue;
+//            Log.d("AAA",Byte.toString(b));
+//            Log.d("Char",Character.toString((char)b));
+//
+//        }
 
-    public void send(byte[] out) {
-        Toast.makeText(mContext, toastText(out), Toast.LENGTH_SHORT).show();
-        // Create temporary object
-        ConnectedThread r;
-        // Synchronize a copy of the ConnectedThread
-        synchronized (this) {
-            if (mState != STATE_CONNECTED) return;
-            r = mConnectedThread;
-        }
-        // Perform the send unsynchronized
-        r.write(out);
-        lastOut = out;
+//        for(int i = 0; i < bytes - 1; i++) {
+//            if ((char)buffer[i] == 'N' && (char)buffer[i+1] == 'G') {
+                Log.d("AA", "resend" + lastOut);
+                send(lastOut);
+//                return;
+//            }
+//        }
+    }
+
+
+    public void send(final byte[] out) {
+        delayer.run(new Runnable() {
+            @Override
+            public void run() {
+//        Toast.makeText(mContext, toastText(out), Toast.LENGTH_SHORT).show();
+                Log.d("AAA", toastText(out));
+                // Create temporary object
+                ConnectedThread r;
+                // Synchronize a copy of the ConnectedThread
+                synchronized (this) {
+                    if (mState != STATE_CONNECTED) return;
+                    r = mConnectedThread;
+                }
+                // Perform the send unsynchronized
+                r.write(out);
+                lastOut = out;
+            }
+        });
     }
 
     private String toastText(byte[] bytes) {

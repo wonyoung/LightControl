@@ -17,7 +17,6 @@ import com.larswerkman.holocolorpicker.SVBar;
 public class ColorPickerFragment extends Fragment {
     public static final int COLOR_INIT = Color.rgb(160, 160, 255);
     private LightController mController;
-    private Delayer delayer = new Delayer();
 
     private void setController(LightController controller) {
         mController = controller;
@@ -46,26 +45,10 @@ public class ColorPickerFragment extends Fragment {
             @Override
             public void onColorChanged(final int i) {
                 rootView.setBackgroundColor(i);
-                delayer.run(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mController != null) {
-                            mController.color(i);
-                        }
-                    }
-                });
+                mController.color(i);
             }
         });
 
         return rootView;
-    }
-
-    private class Delayer {
-        private Handler handler = new Handler();
-
-        public void run(Runnable runnable) {
-            handler.removeCallbacksAndMessages(null);
-            handler.postDelayed(runnable, 200);
-        }
     }
 }

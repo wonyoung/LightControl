@@ -8,8 +8,12 @@ import android.graphics.Color;
  */
 public class LightController {
 
+    private static final byte START_BYTE = 77;
+
     private static final byte CHANGE_COLOR = 11;
     private static final byte CHANGE_BRIGHTNESS = 12;
+    private static final byte CHANGE_PERIOD = 13;
+
     private static final byte PRESET_RAINBOW = 21;
     private static final byte PRESET_GRADIENT = 22;
     private static final byte PRESET_BLACK = 23;
@@ -34,6 +38,10 @@ public class LightController {
 
     public void brightness(int b) {
         send(new byte[] {CHANGE_BRIGHTNESS, (byte) b, 0, 0 });
+    }
+
+    public void period(int b) {
+        send(new byte[] {CHANGE_PERIOD, (byte) b, 0, 0 });
     }
 
     public void rainbow() {
@@ -62,8 +70,25 @@ public class LightController {
 
     private void send(byte[] msg) {
         if (mService != null) {
-            mService.send(withChecksum(msg));
+            mService.send(addDummy(withChecksum(addStartByte(msg))));
         }
+    }
+
+    private byte[] addDummy(byte[] msg) {
+        byte[] bytes = new byte[msg.length+2];
+        for (int i = 0; i < msg.length; i++) {
+            bytes[i] = msg[i];
+        }
+        return bytes;
+    }
+
+    private byte[] addStartByte(byte[] msg) {
+        byte[] bytes = new byte[msg.length+1];
+        bytes[0] = START_BYTE;
+        for (int i = 0; i < msg.length; i++) {
+            bytes[i+1] = msg[i];
+        }
+        return bytes;
     }
 
     private byte[] withChecksum(byte[] cmd) {
@@ -77,52 +102,4 @@ public class LightController {
         return withcs;
     }
 
-    /*
-    #define CMD_LENGTH 5
-    int index = 0;
-    char buf[CMD_LENGTH]
-    boolean verifyChecksum(char* buf)
-    {
-      int cs = buf[CMD_LENGTH-2];
-      int sum = 0;
-      for(int i = 0; i < CMD_LENGTH-1; i++)
-      {
-        sum += buf[i];
-      }
-      if (sum == cs) return true;
-      return false;
-    }
-
-    void handleCommand(char* buf)
-    {
-      for(int i = 0; i < CMD_LENGTH; i++)
-      {
-        Serial.println(buf[i]);
-      }
-
-      if(verifyChecksum(buf)) {
-        BTSerial.println("NG");
-        return;
-      }
-      char cmd = buf[0];
-      switch(cmd)
-      {
-      }
-    }
-
-    void loop()
-    {
-      while(BTSerial.available())
-      {
-        c = BTSerial.read();
-        buf[i] = c;
-        i++;
-        if (i == CMD_LENGTH)
-        {
-          handleCommand(buf);
-          i = 0;
-        }
-      }
-    }
-     */
 }
