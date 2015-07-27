@@ -34,9 +34,12 @@ public class MainActivity extends AppCompatActivity
 
     private LightController mLightController = new ArduinoLightController(new LightDevice() {
 
+        public boolean mConnect = false;
+
         @Override
         public void stop() {
             toast("Dummy: stop");
+            mConnect = false;
         }
 
         @Override
@@ -47,6 +50,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void connect(String address) {
             toast("Dummy: connect");
+            mConnect = true;
         }
 
         @Override
@@ -61,7 +65,7 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public boolean isConnected() {
-            return false;
+            return mConnect;
         }
     });
     private MenuItem mMenuItemConnect;
@@ -118,7 +122,7 @@ public class MainActivity extends AppCompatActivity
                                 @Override
                                 public void onConnected() {
                                     toast("Connected.");
-                                    mMenuItemConnect.setTitle(R.string.action_connected);
+                                    mMenuItemConnect.setTitle(R.string.action_disconnect);
                                 }
 
                                 @Override
