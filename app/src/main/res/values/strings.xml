@@ -22,4 +22,8 @@
 
     <string name="action_connect">Connect</string>
     <string name="action_disconnect">Disconnect</string>
+    <string name="blink">Blink</string>
+    <string name="pause">Pause</string>
+    <string name="cycle">Cycle</string>
+    <string name="brightness">Brightness</string>
 </resources>

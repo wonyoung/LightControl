@@ -25,7 +25,8 @@
             android:layout_margin="10dp"
             android:padding="0dp"
             android:layout_row="0"
-            android:layout_column="0" />
+            android:layout_column="0"
+            android:contentDescription="" />
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -39,7 +40,8 @@
             android:layout_margin="10dp"
             android:padding="0dp"
             android:layout_row="0"
-            android:layout_column="1" />
+            android:layout_column="1"
+            android:contentDescription="" />
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -53,7 +55,8 @@
             android:layout_margin="10dp"
             android:padding="0dp"
             android:layout_row="1"
-            android:layout_column="0" />
+            android:layout_column="0"
+            android:contentDescription="" />
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -67,7 +70,8 @@
             android:layout_margin="10dp"
             android:padding="0dp"
             android:layout_row="1"
-            android:layout_column="1" />
+            android:layout_column="1"
+            android:contentDescription="" />
 
         <Button
             android:layout_width="wrap_content"
@@ -80,8 +84,8 @@
             android:adjustViewBounds="true"
             android:layout_gravity="fill"
             android:layout_margin="10dp"
-            android:text="STOP"
-            android:textSize="32dp"
+            android:text="@string/pause"
+            android:textSize="24sp"
             android:height="100dp"
             android:padding="0dp"
             android:layout_row="2"
@@ -99,8 +103,8 @@
             android:layout_gravity="fill"
             android:layout_margin="10dp"
             android:height="100dp"
-            android:text="BLINK"
-            android:textSize="32dp"
+            android:text="@string/blink"
+            android:textSize="24sp"
             android:padding="0dp"
             android:layout_row="2"
             android:layout_column="1" />
@@ -110,7 +114,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Period"
+        android:text="@string/cycle"
         android:id="@+id/textView" />
 
     <SeekBar
@@ -122,7 +126,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Brightness"
+        android:text="@string/brightness"
         android:id="@+id/textView2" />
 
     <SeekBar

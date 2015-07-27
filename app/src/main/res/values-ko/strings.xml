@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">조명</string>
+
+    <string name="title_simple_color">사용자 색</string>
+    <string name="title_preset">모드</string>
+    <string name="title_settings">설정</string>
+\
+    <string name="scanning">장치 검색 중...</string>
+    <string name="select_device">연결할 장치를 선택하세요</string>
+    <string name="none_paired">페어링된 장치 없음</string>
+    <string name="none_found">장치 없음</string>
+    <string name="title_paired_devices">페어링된 장치</string>
+    <string name="title_other_devices">연결 가능한 장치</string>
+    <string name="button_scan">장치 검색</string>
+    <string name="title_activity_device_list">블루투스 장치 목록</string>
+
+    <string name="action_connect">연결</string>
+    <string name="action_disconnect">연결 해제</string>
+    <string name="blink">깜빡임</string>
+    <string name="pause">멈춤</string>
+    <string name="cycle">반복간격</string>
+    <string name="brightness">밝기</string>
+</resources>
