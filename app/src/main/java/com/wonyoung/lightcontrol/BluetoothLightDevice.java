@@ -4,11 +4,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,9 +16,8 @@ import java.util.UUID;
 /**
  * Created by wonyoung on 15. 7. 22..
  */
-public class LightService {
+public class BluetoothLightDevice implements LightDevice {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-    private final Context mContext;
     private final BluetoothAdapter mAdapter;
 
     private ConnectThread mConnectThread;
@@ -36,12 +33,15 @@ public class LightService {
     private int mState;
     private byte[] lastOut;
 
-    public LightService(Context context) {
-        this.mContext = context;
+    private DeviceListener mListener;
+
+    public BluetoothLightDevice(LightDevice.DeviceListener listener) {
+        this.mListener = listener;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mState = STATE_NONE;
     }
 
+    @Override
     public synchronized void stop() {
 
         if (mConnectThread != null) {
@@ -66,18 +66,21 @@ public class LightService {
         setState(STATE_NONE);
     }
 
+    @Override
     public void start() {
         setState(STATE_LISTEN);
     }
 
-    public void setState(int state) {
+    private void setState(int state) {
         mState = state;
     }
 
-    public synchronized int getState() {
+    private synchronized int getState() {
         return mState;
     }
-    public synchronized void connect(BluetoothDevice device) {
+    @Override
+    public synchronized void connect(String address) {
+        BluetoothDevice device = mAdapter.getRemoteDevice(address);
 
         // Cancel any thread attempting to make a connection
         if (mState == STATE_CONNECTING) {
@@ -138,9 +141,15 @@ public class LightService {
 //        mHandler.sendMessage(msg);
 
         setState(STATE_CONNECTED);
+        mListener.onConnected();
     }
 
-
+    @Override
+    public void resume() {
+        if (getState() == BluetoothLightDevice.STATE_NONE) {
+            start();
+        }
+    }
 
     /**
      * This thread runs while attempting to make an outgoing connection
@@ -178,12 +187,12 @@ public class LightService {
                 }
                 Log.e(TAG, "Unable to connect device");
                 e.printStackTrace();
-//                connectionFailed();
+                connectionFailed();
                 return;
             }
 
             // Reset the ConnectThread because we're done
-            synchronized (LightService.this) {
+            synchronized (BluetoothLightDevice.this) {
                 mConnectThread = null;
             }
 
@@ -197,6 +206,10 @@ public class LightService {
             } catch (IOException e) {
             }
         }
+    }
+
+    private void connectionFailed() {
+        mListener.onConnectionFailed();
     }
 
     private class ConnectedThread extends Thread {
@@ -234,7 +247,7 @@ public class LightService {
                 } catch (IOException e) {
 //                    connectionLost();
                     // Start the service over to restart listening mode
-                    LightService.this.start();
+                    BluetoothLightDevice.this.start();
                     break;
                 }
             }
@@ -282,12 +295,13 @@ public class LightService {
     }
 
 
-    public void send(final byte[] out) {
+    @Override
+    public void send(final byte[] msg) {
         delayer.run(new Runnable() {
             @Override
             public void run() {
 //        Toast.makeText(mContext, toastText(out), Toast.LENGTH_SHORT).show();
-                Log.d("AAA", toastText(out));
+                Log.d("AAA", toastText(msg));
                 // Create temporary object
                 ConnectedThread r;
                 // Synchronize a copy of the ConnectedThread
@@ -296,8 +310,8 @@ public class LightService {
                     r = mConnectedThread;
                 }
                 // Perform the send unsynchronized
-                r.write(out);
-                lastOut = out;
+                r.write(msg);
+                lastOut = msg;
             }
         });
     }

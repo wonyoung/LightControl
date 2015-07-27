@@ -1,5 +1,6 @@
 package com.wonyoung.lightcontrol;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,8 +13,11 @@ import android.widget.Button;
  */
 public class SettingsFragment extends Fragment {
 
-    public static SettingsFragment newInstance() {
+    public static SettingsFragment newInstance(int sectionNumber) {
         SettingsFragment fragment = new SettingsFragment();
+        Bundle args = new Bundle();
+        args.putInt(MainActivity.ARG_SECTION_NUMBER, sectionNumber);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -30,4 +34,10 @@ public class SettingsFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        ((MainActivity) activity).onSectionAttached(
+                getArguments().getInt(MainActivity.ARG_SECTION_NUMBER));
+    }
 }

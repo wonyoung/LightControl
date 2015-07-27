@@ -2,18 +2,15 @@ package com.wonyoung.lightcontrol;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
 
@@ -22,15 +19,15 @@ public class MainActivity extends AppCompatActivity
 
     public static final String ARG_SECTION_NUMBER = "section_number";
 
+    public static String EXTRA_DEVICE_ADDRESS = "device_address";
+
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
-    private static final int REQUEST_DEVICE_LIST = 2;
-    private static final int REQUEST_ENABLE_BT = 3;
+    private static final int REQUEST_SELECT_BT_DEVICE = 2;
 
     private LightController mLightController = new LightController(this);
-    private LightService mLightService = null;
-
-    private BluetoothAdapter mBluetoothAdapter;
+    private LightDevice mLightDevice = null;
+    private CharSequence mTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,13 +35,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         mNavigationDrawerFragment = setUpDrawerFragment();
-
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        if (mBluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-            finish();
-        }
+        mTitle = getTitle();
     }
 
     private NavigationDrawerFragment setUpDrawerFragment() {
@@ -60,72 +51,87 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-            // Otherwise, setup the chat session
-        } else if (mLightService == null) {
+        if (mLightDevice == null) {
             setupLight();
         }
     }
 
     private void setupLight() {
-        mLightService = new LightService(this);
-        mLightController.setService(mLightService);
+        mLightDevice = new BluetoothLightDevice(new LightDevice.DeviceListener() {
+            @Override
+            public void onConnected() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "Connected.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onConnectionFailed() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                       Toast.makeText(MainActivity.this, "Connection Failed.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+        mLightController.setService(mLightDevice);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (mLightService != null) {
-            if (mLightService.getState() == LightService.STATE_NONE) {
-                mLightService.start();
-            }
+        if (mLightDevice != null) {
+            mLightDevice.resume();
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mLightService != null) {
-            mLightService.stop();
+        if (mLightDevice != null) {
+            mLightDevice.stop();
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch(requestCode) {
-            case REQUEST_ENABLE_BT:
-                if (resultCode == Activity.RESULT_OK) {
-                    setupLight();
-                } else {
-                    Toast.makeText(this, "To start, Bluetooth should be enabled.",
-                            Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-                break;
-            case REQUEST_DEVICE_LIST:
+            case REQUEST_SELECT_BT_DEVICE:
                 if (resultCode == Activity.RESULT_OK) {
                     connectDevice(data);
                 }
                 break;
         }
     }
+
     private void connectDevice(Intent data) {
-        // Get the device MAC address
         String address = data.getExtras()
-                .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-        // Get the BluetoothDevice object
-        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-        // Attempt to connect to the device
-        mLightService.connect(device);
+                .getString(EXTRA_DEVICE_ADDRESS);
+
+        mLightDevice.connect(address);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        if (!mNavigationDrawerFragment.isDrawerOpen()) {
+            // Only show items in the action bar relevant to this screen
+            // if the drawer is not showing. Otherwise, let the drawer
+            // decide what to show in the action bar.
+            getMenuInflater().inflate(R.menu.menu_main, menu);
+            restoreActionBar();
+            return true;
+        }
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    public void restoreActionBar() {
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setTitle(mTitle);
     }
 
     @Override
@@ -156,22 +162,32 @@ public class MainActivity extends AppCompatActivity
             case 1:
                 return PresetColorFragment.newInstance(mLightController, sectionNumber);
             case 2:
-                return ColorPickerFragment.newInstance(mLightController);
+                return ColorPickerFragment.newInstance(mLightController, sectionNumber);
         }
 
-        return SettingsFragment.newInstance();
+        return SettingsFragment.newInstance(sectionNumber);
     }
 
     @Override
     public void onOptionItemSelected() {
-        Intent intent = new Intent(this, DeviceListActivity.class);
-
-        startActivityForResult(intent, REQUEST_DEVICE_LIST);
+        Intent intent = new Intent(this, SelectBluetoothDeviceActivity.class);
+        startActivityForResult(intent, REQUEST_SELECT_BT_DEVICE);
         return;
     }
 
     public void onSectionAttached(int number) {
-
+        switch (number) {
+            case 1:
+                mTitle = getString(R.string.title_preset);
+                break;
+            case 2:
+                mTitle = getString(R.string.title_simple_color);
+                break;
+            case 3:
+                mTitle = getString(R.string.title_settings);
+                break;
+        }
+        restoreActionBar();
     }
 
 }

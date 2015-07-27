@@ -1,5 +1,6 @@
 package com.wonyoung.lightcontrol;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -22,9 +23,12 @@ public class ColorPickerFragment extends Fragment {
         mController = controller;
     }
 
-    public static Fragment newInstance(LightController controller) {
+    public static Fragment newInstance(LightController controller, int sectionNumber) {
         ColorPickerFragment fragment = new ColorPickerFragment();
         fragment.setController(controller);
+        Bundle args = new Bundle();
+        args.putInt(MainActivity.ARG_SECTION_NUMBER, sectionNumber);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -50,5 +54,12 @@ public class ColorPickerFragment extends Fragment {
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        ((MainActivity) activity).onSectionAttached(
+                getArguments().getInt(MainActivity.ARG_SECTION_NUMBER));
     }
 }

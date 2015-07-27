@@ -22,13 +22,13 @@ public class LightController {
     private static final byte PRESET_BLINK = 26;
 
     private Context mContext;
-    private LightService mService = null;
+    private LightDevice mService = null;
 
     public LightController(Context context) {
         mContext = context;
     }
 
-    public void setService(LightService service) {
+    public void setService(LightDevice service) {
         mService = service;
     }
 
