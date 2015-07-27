@@ -1,4 +1,4 @@
-package com.wonyoung.lightcontrol;
+package com.wonyoung.lightcontrol.device;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothSocket;
  * Created by wonyoung.jang on 15. 7. 27..
  */
 public interface LightDevice {
+
     void stop();
 
     void start();
@@ -16,6 +17,8 @@ public interface LightDevice {
     void resume();
 
     void send(byte[] msg);
+
+    boolean isConnected();
 
     public interface DeviceListener {
         void onConnected();

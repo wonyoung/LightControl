@@ -1,12 +1,14 @@
-package com.wonyoung.lightcontrol;
+package com.wonyoung.lightcontrol.control;
 
-import android.content.Context;
 import android.graphics.Color;
+import android.os.Handler;
+
+import com.wonyoung.lightcontrol.device.LightDevice;
 
 /**
  * Created by wonyoung.jang on 15. 7. 22.
  */
-public class LightController {
+public class ArduinoLightController implements LightController {
 
     private static final byte START_BYTE = 77;
 
@@ -21,15 +23,12 @@ public class LightController {
     private static final byte PRESET_STOP = 25;
     private static final byte PRESET_BLINK = 26;
 
-    private Context mContext;
-    private LightDevice mService = null;
+    private Delayer delayer = new Delayer();
 
-    public LightController(Context context) {
-        mContext = context;
-    }
+    private LightDevice mLight;
 
-    public void setService(LightDevice service) {
-        mService = service;
+    public ArduinoLightController(LightDevice device) {
+        mLight = device;
     }
 
     public void color(int i) {
@@ -38,6 +37,26 @@ public class LightController {
 
     public void brightness(int b) {
         send(new byte[] {CHANGE_BRIGHTNESS, (byte) b, 0, 0 });
+    }
+
+    @Override
+    public void resume() {
+        mLight.resume();
+    }
+
+    @Override
+    public void stop() {
+        mLight.stop();
+    }
+
+    @Override
+    public void connect(String address) {
+        mLight.connect(address);
+    }
+
+    @Override
+    public boolean isConnected() {
+        return mLight.isConnected();
     }
 
     public void period(int b) {
@@ -60,7 +79,7 @@ public class LightController {
         send(new byte[] {PRESET_WHITE, 0, 0, 0 });
     }
 
-    public void stop() {
+    public void pause() {
         send(new byte[] {PRESET_STOP, 0, 0, 0 });
     }
 
@@ -68,10 +87,13 @@ public class LightController {
         send(new byte[] {PRESET_BLINK, 0, 0, 0 });
     }
 
-    private void send(byte[] msg) {
-        if (mService != null) {
-            mService.send(addDummy(withChecksum(addStartByte(msg))));
-        }
+    private void send(final byte[] msg) {
+        delayer.run(new Runnable() {
+            @Override
+            public void run() {
+                mLight.send(addDummy(withChecksum(addStartByte(msg))));
+            }
+        });
     }
 
     private byte[] addDummy(byte[] msg) {
@@ -100,6 +122,16 @@ public class LightController {
         }
         withcs[withcs.length - 1] = sum;
         return withcs;
+    }
+
+
+    private class Delayer {
+        private Handler handler = new Handler();
+
+        public void run(Runnable runnable) {
+            handler.removeCallbacksAndMessages(null);
+            handler.postDelayed(runnable, 100);
+        }
     }
 
 }

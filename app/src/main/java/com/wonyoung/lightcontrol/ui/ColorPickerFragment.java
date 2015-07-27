@@ -1,31 +1,28 @@
-package com.wonyoung.lightcontrol;
+package com.wonyoung.lightcontrol.ui;
 
 import android.app.Activity;
 import android.app.Fragment;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.SVBar;
+import com.wonyoung.lightcontrol.R;
+import com.wonyoung.lightcontrol.control.LightController;
 
 /**
  * Created by wonyoung.jang on 15. 7. 22.
  */
 public class ColorPickerFragment extends Fragment {
-    public static final int COLOR_INIT = Color.rgb(160, 160, 255);
-    private LightController mController;
+    private static final int COLOR_INIT = Color.rgb(160, 160, 255);
 
-    private void setController(LightController controller) {
-        mController = controller;
-    }
+    private LightController mLightController;
 
-    public static Fragment newInstance(LightController controller, int sectionNumber) {
+    public static Fragment newInstance(int sectionNumber) {
         ColorPickerFragment fragment = new ColorPickerFragment();
-        fragment.setController(controller);
         Bundle args = new Bundle();
         args.putInt(MainActivity.ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);
@@ -49,7 +46,7 @@ public class ColorPickerFragment extends Fragment {
             @Override
             public void onColorChanged(final int i) {
                 rootView.setBackgroundColor(i);
-                mController.color(i);
+                mLightController.color(i);
             }
         });
 
@@ -59,7 +56,9 @@ public class ColorPickerFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        ((MainActivity) activity).onSectionAttached(
+        MainActivity mainActivity = (MainActivity) activity;
+        mainActivity.onSectionAttached(
                 getArguments().getInt(MainActivity.ARG_SECTION_NUMBER));
+        mLightController = mainActivity.getLightController();
     }
 }

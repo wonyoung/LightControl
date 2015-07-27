@@ -1,11 +1,10 @@
-package com.wonyoung.lightcontrol;
+package com.wonyoung.lightcontrol.device;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 
 import java.io.IOException;
@@ -17,18 +16,17 @@ import java.util.UUID;
  * Created by wonyoung on 15. 7. 22..
  */
 public class BluetoothLightDevice implements LightDevice {
+    private static final int STATE_NONE = 0;
+    private static final int STATE_LISTEN = 1;
+    private static final int STATE_CONNECTING = 2;
+    private static final int STATE_CONNECTED = 3;
+
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     private final BluetoothAdapter mAdapter;
 
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
 
-    private Delayer delayer = new Delayer();
-
-    public static final int STATE_NONE = 0;
-    public static final int STATE_LISTEN = 1;
-    private static final int STATE_CONNECTING = 2;
-    private static final int STATE_CONNECTED = 3;
 
     private int mState;
     private byte[] lastOut;
@@ -75,9 +73,6 @@ public class BluetoothLightDevice implements LightDevice {
         mState = state;
     }
 
-    private synchronized int getState() {
-        return mState;
-    }
     @Override
     public synchronized void connect(String address) {
         BluetoothDevice device = mAdapter.getRemoteDevice(address);
@@ -146,7 +141,7 @@ public class BluetoothLightDevice implements LightDevice {
 
     @Override
     public void resume() {
-        if (getState() == BluetoothLightDevice.STATE_NONE) {
+        if (mState == STATE_NONE) {
             start();
         }
     }
@@ -268,15 +263,6 @@ public class BluetoothLightDevice implements LightDevice {
         }
     }
 
-    private class Delayer {
-        private Handler handler = new Handler();
-
-        public void run(Runnable runnable) {
-            handler.removeCallbacksAndMessages(null);
-            handler.postDelayed(runnable, 100);
-        }
-    }
-
     private void received(int bytes, byte[] buffer) {
 //        for (byte b : buffer) {
 //            if (b == 0) continue;
@@ -297,32 +283,20 @@ public class BluetoothLightDevice implements LightDevice {
 
     @Override
     public void send(final byte[] msg) {
-        delayer.run(new Runnable() {
-            @Override
-            public void run() {
-//        Toast.makeText(mContext, toastText(out), Toast.LENGTH_SHORT).show();
-                Log.d("AAA", toastText(msg));
-                // Create temporary object
-                ConnectedThread r;
-                // Synchronize a copy of the ConnectedThread
-                synchronized (this) {
-                    if (mState != STATE_CONNECTED) return;
-                    r = mConnectedThread;
-                }
-                // Perform the send unsynchronized
-                r.write(msg);
-                lastOut = msg;
-            }
-        });
+        // Create temporary object
+        ConnectedThread r;
+        // Synchronize a copy of the ConnectedThread
+        synchronized (this) {
+            if (mState != STATE_CONNECTED) return;
+            r = mConnectedThread;
+        }
+        // Perform the send unsynchronized
+        r.write(msg);
+        lastOut = msg;
     }
 
-    private String toastText(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(b & 0xFF);
-            sb.append(" ");
-        }
-
-        return sb.toString();
+    @Override
+    public boolean isConnected() {
+        return mState == STATE_CONNECTED;
     }
 }

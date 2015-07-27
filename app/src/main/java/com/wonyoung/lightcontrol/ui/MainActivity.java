@@ -1,4 +1,4 @@
-package com.wonyoung.lightcontrol;
+package com.wonyoung.lightcontrol.ui;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -8,10 +8,17 @@ import android.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.wonyoung.lightcontrol.R;
+import com.wonyoung.lightcontrol.control.ArduinoLightController;
+import com.wonyoung.lightcontrol.control.LightController;
+import com.wonyoung.lightcontrol.device.BluetoothLightDevice;
+import com.wonyoung.lightcontrol.device.LightDevice;
+
+import java.util.Arrays;
 
 
 public class MainActivity extends AppCompatActivity
@@ -25,8 +32,49 @@ public class MainActivity extends AppCompatActivity
 
     private static final int REQUEST_SELECT_BT_DEVICE = 2;
 
-    private LightController mLightController = new LightController(this);
-    private LightDevice mLightDevice = null;
+    private LightController mLightController = new ArduinoLightController(new LightDevice() {
+
+        @Override
+        public void stop() {
+            toast("Dummy: stop");
+        }
+
+        @Override
+        public void start() {
+            toast("Dummy: start");
+        }
+
+        @Override
+        public void connect(String address) {
+            toast("Dummy: connect");
+        }
+
+        @Override
+        public void resume() {
+            toast("Dummy: resume");
+        }
+
+        @Override
+        public void send(byte[] msg) {
+            toast("Dummy: send " + Arrays.toString(msg));
+        }
+
+        @Override
+        public boolean isConnected() {
+            return false;
+        }
+    });
+    private MenuItem mMenuItemConnect;
+
+    private void toast(final String msg) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private CharSequence mTitle;
 
     @Override
@@ -49,52 +97,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        if (mLightDevice == null) {
-            setupLight();
-        }
-    }
-
-    private void setupLight() {
-        mLightDevice = new BluetoothLightDevice(new LightDevice.DeviceListener() {
-            @Override
-            public void onConnected() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "Connected.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onConnectionFailed() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                       Toast.makeText(MainActivity.this, "Connection Failed.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-        mLightController.setService(mLightDevice);
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
-        if (mLightDevice != null) {
-            mLightDevice.resume();
-        }
+        mLightController.resume();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mLightDevice != null) {
-            mLightDevice.stop();
-        }
+        mLightController.stop();
     }
 
     @Override
@@ -102,6 +113,20 @@ public class MainActivity extends AppCompatActivity
         switch(requestCode) {
             case REQUEST_SELECT_BT_DEVICE:
                 if (resultCode == Activity.RESULT_OK) {
+                    mLightController = new ArduinoLightController(new BluetoothLightDevice(
+                            new LightDevice.DeviceListener() {
+                                @Override
+                                public void onConnected() {
+                                    toast("Connected.");
+                                    mMenuItemConnect.setTitle(R.string.action_connected);
+                                }
+
+                                @Override
+                                public void onConnectionFailed() {
+                                    toast("Connection Failed.");
+                                }
+                            }));
+
                     connectDevice(data);
                 }
                 break;
@@ -112,7 +137,7 @@ public class MainActivity extends AppCompatActivity
         String address = data.getExtras()
                 .getString(EXTRA_DEVICE_ADDRESS);
 
-        mLightDevice.connect(address);
+        mLightController.connect(address);
     }
 
     @Override
@@ -122,6 +147,7 @@ public class MainActivity extends AppCompatActivity
             // if the drawer is not showing. Otherwise, let the drawer
             // decide what to show in the action bar.
             getMenuInflater().inflate(R.menu.menu_main, menu);
+            mMenuItemConnect = (MenuItem) menu.findItem(R.id.action_connect);
             restoreActionBar();
             return true;
         }
@@ -160,9 +186,9 @@ public class MainActivity extends AppCompatActivity
     private Fragment getPlaceholderFragment(int sectionNumber) {
         switch(sectionNumber) {
             case 1:
-                return PresetColorFragment.newInstance(mLightController, sectionNumber);
+                return PresetColorFragment.newInstance(sectionNumber);
             case 2:
-                return ColorPickerFragment.newInstance(mLightController, sectionNumber);
+                return ColorPickerFragment.newInstance(sectionNumber);
         }
 
         return SettingsFragment.newInstance(sectionNumber);
@@ -170,9 +196,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onOptionItemSelected() {
-        Intent intent = new Intent(this, SelectBluetoothDeviceActivity.class);
-        startActivityForResult(intent, REQUEST_SELECT_BT_DEVICE);
-        return;
+        if (mLightController.isConnected()) {
+            mLightController.stop();
+            mMenuItemConnect.setTitle(R.string.action_connect);
+        }
+        else {
+            Intent intent = new Intent(this, SelectBluetoothDeviceActivity.class);
+            startActivityForResult(intent, REQUEST_SELECT_BT_DEVICE);
+        }
     }
 
     public void onSectionAttached(int number) {
@@ -190,4 +221,7 @@ public class MainActivity extends AppCompatActivity
         restoreActionBar();
     }
 
+    public LightController getLightController() {
+        return mLightController;
+    }
 }

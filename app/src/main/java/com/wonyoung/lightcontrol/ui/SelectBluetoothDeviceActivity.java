@@ -1,4 +1,4 @@
-package com.wonyoung.lightcontrol;
+package com.wonyoung.lightcontrol.ui;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -16,6 +16,8 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.wonyoung.lightcontrol.R;
 
 import java.util.Set;
 
