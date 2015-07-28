@@ -5,7 +5,6 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.FragmentManager;
-import android.support.annotation.NonNull;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -121,7 +120,12 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onConnected() {
                         toast("Connected.");
-                        mMenuItemConnect.setTitle(R.string.action_disconnect);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mMenuItemConnect.setTitle(R.string.action_disconnect);
+                            }
+                        });
                     }
 
                     @Override
@@ -147,8 +151,10 @@ public class MainActivity extends AppCompatActivity
 
     public void restoreActionBar() {
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
+        if (actionBar != null) {
+            actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setTitle(mTitle);
+        }
     }
 
     @Override
