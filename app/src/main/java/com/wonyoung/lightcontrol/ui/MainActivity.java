@@ -22,7 +22,7 @@ import java.util.Arrays;
 
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, LightController {
 
     public static final String ARG_SECTION_NUMBER = "section_number";
     public static final String EXTRA_DEVICE_ADDRESS = "device_address";
@@ -66,10 +66,6 @@ public class MainActivity extends AppCompatActivity
         }
     };
     private LightController mLightController = new ArduinoLightController(nullDevice);
-
-    public LightController getLightController() {
-        return mLightController;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -269,4 +265,69 @@ public class MainActivity extends AppCompatActivity
             return mConnect;
         }
     };
+
+    @Override
+    public void color(int i) {
+        mLightController.color(i);
+    }
+
+    @Override
+    public void black() {
+        mLightController.black();
+    }
+
+    @Override
+    public void white() {
+        mLightController.white();
+    }
+
+    @Override
+    public void rainbow() {
+        mLightController.rainbow();
+    }
+
+    @Override
+    public void gradient() {
+        mLightController.gradient();
+    }
+
+    @Override
+    public void pause() {
+        mLightController.pause();
+    }
+
+    @Override
+    public void blink() {
+        mLightController.blink();
+    }
+
+    @Override
+    public void period(int p) {
+        mLightController.period(p);
+    }
+
+    @Override
+    public void brightness(int brightness) {
+        mLightController.brightness(brightness);
+    }
+
+    @Override
+    public void resume() {
+        mLightController.resume();
+    }
+
+    @Override
+    public void stop() {
+        mLightController.stop();
+    }
+
+    @Override
+    public void connect(String address) {
+        mLightController.connect(address);
+    }
+
+    @Override
+    public boolean isConnected() {
+        return mLightController.isConnected();
+    }
 }

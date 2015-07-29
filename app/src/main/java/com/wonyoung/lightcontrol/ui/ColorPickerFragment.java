@@ -59,6 +59,6 @@ public class ColorPickerFragment extends Fragment {
         MainActivity mainActivity = (MainActivity) activity;
         mainActivity.onSectionAttached(
                 getArguments().getInt(MainActivity.ARG_SECTION_NUMBER));
-        mLightController = mainActivity.getLightController();
+        mLightController = mainActivity;
     }
 }
